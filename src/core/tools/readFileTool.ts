@@ -23,6 +23,7 @@ import {
 	processImageFile,
 	ImageMemoryTracker,
 } from "./helpers/imageHelpers"
+import { logTool, logPermission } from "../logging/DebugLogger"
 
 export function getReadFileToolDescription(blockName: string, blockParams: any): string {
 	// Handle both single path and multiple files via args
@@ -92,6 +93,13 @@ export async function readFileTool(
 	const legacyPath: string | undefined = block.params.path
 	const legacyStartLineStr: string | undefined = block.params.start_line
 	const legacyEndLineStr: string | undefined = block.params.end_line
+
+	logTool("readFile", "start", {
+		hasArgs: !!argsXmlTag,
+		hasLegacyPath: !!legacyPath,
+		partial: block.partial,
+		taskId: cline.taskId,
+	})
 
 	// Check if the current model supports images at the beginning
 	const modelInfo = cline.api.getModel().info

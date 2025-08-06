@@ -9,6 +9,7 @@ import {
 } from "@roo-code/types"
 
 import { Mode, modes } from "../../shared/modes"
+import { logConfig } from "../logging/DebugLogger"
 
 const providerSettingsWithIdSchema = providerSettingsSchema.extend({ id: z.string().optional() })
 const discriminatedProviderSettingsWithIdSchema = providerSettingsSchemaDiscriminated.and(
@@ -80,11 +81,14 @@ export class ProviderSettingsManager {
 	 * Initialize config if it doesn't exist and run migrations.
 	 */
 	public async initialize() {
+		logConfig("initialize", "ProviderSettingsManager.initialize", "Starting initialization")
 		try {
 			return await this.lock(async () => {
 				const providerProfiles = await this.load()
+				logConfig("initialize", "ProviderSettingsManager.load", { hasProfiles: !!providerProfiles })
 
 				if (!providerProfiles) {
+					logConfig("initialize", "ProviderSettingsManager.store", "Creating default profiles")
 					await this.store(this.defaultProviderProfiles)
 					return
 				}
@@ -482,10 +486,16 @@ export class ProviderSettingsManager {
 	}
 
 	private async load(): Promise<ProviderProfiles> {
+		logConfig("load", "ProviderSettingsManager.secrets.get", this.secretsKey)
 		try {
 			const content = await this.context.secrets.get(this.secretsKey)
+			logConfig("load", "ProviderSettingsManager.secrets.get.result", {
+				hasContent: !!content,
+				contentLength: content?.length,
+			})
 
 			if (!content) {
+				logConfig("load", "ProviderSettingsManager.load", "No content found, returning defaults")
 				return this.defaultProviderProfiles
 			}
 
@@ -515,9 +525,15 @@ export class ProviderSettingsManager {
 	}
 
 	private async store(providerProfiles: ProviderProfiles) {
+		logConfig("store", "ProviderSettingsManager.secrets.store", {
+			key: this.secretsKey,
+			configCount: Object.keys(providerProfiles.apiConfigs).length,
+		})
 		try {
 			await this.context.secrets.store(this.secretsKey, JSON.stringify(providerProfiles, null, 2))
+			logConfig("store", "ProviderSettingsManager.secrets.store.success", "Configuration stored successfully")
 		} catch (error) {
+			logConfig("store", "ProviderSettingsManager.secrets.store.error", error)
 			throw new Error(`Failed to write provider profiles to secrets: ${error}`)
 		}
 	}

@@ -4,6 +4,7 @@ import * as fs from "fs/promises"
 
 import { Package } from "../shared/package"
 import { t } from "../i18n"
+import { logConfig, logVSCodeAPI } from "../core/logging/DebugLogger"
 
 /**
  * Gets the base storage path for conversations
@@ -16,8 +17,10 @@ export async function getStorageBasePath(defaultPath: string): Promise<string> {
 
 	try {
 		// This is the line causing the error in tests
+		logVSCodeAPI("workspace.getConfiguration", { section: Package.name, key: "customStoragePath" })
 		const config = vscode.workspace.getConfiguration(Package.name)
 		customStoragePath = config.get<string>("customStoragePath", "")
+		logConfig("get", `${Package.name}.customStoragePath`, customStoragePath)
 	} catch (error) {
 		console.warn("Could not access VSCode configuration - using default path")
 		return defaultPath
@@ -90,8 +93,10 @@ export async function promptForCustomStoragePath(): Promise<void> {
 
 	let currentPath = ""
 	try {
+		logVSCodeAPI("workspace.getConfiguration", { section: Package.name, key: "customStoragePath" })
 		const currentConfig = vscode.workspace.getConfiguration(Package.name)
 		currentPath = currentConfig.get<string>("customStoragePath", "")
+		logConfig("get", `${Package.name}.customStoragePath`, currentPath)
 	} catch (error) {
 		console.error("Could not access configuration")
 		return
@@ -125,8 +130,10 @@ export async function promptForCustomStoragePath(): Promise<void> {
 	// If user canceled the operation, result will be undefined
 	if (result !== undefined) {
 		try {
+			logVSCodeAPI("workspace.getConfiguration", { section: Package.name, key: "customStoragePath" })
 			const currentConfig = vscode.workspace.getConfiguration(Package.name)
 			await currentConfig.update("customStoragePath", result, vscode.ConfigurationTarget.Global)
+			logConfig("update", `${Package.name}.customStoragePath`, result)
 
 			if (result) {
 				try {

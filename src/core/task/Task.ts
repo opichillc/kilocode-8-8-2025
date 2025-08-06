@@ -45,6 +45,7 @@ import { defaultModeSlug } from "../../shared/modes"
 import { DiffStrategy } from "../../shared/tools"
 import { EXPERIMENT_IDS, experiments } from "../../shared/experiments"
 import { getModelMaxOutputTokens } from "../../shared/api"
+import { logConfig, logTask, logVSCodeAPI } from "../logging/DebugLogger"
 
 // services
 import { UrlContentFetcher } from "../../services/browser/UrlContentFetcher"
@@ -298,12 +299,22 @@ export class Task extends EventEmitter<TaskEvents> {
 
 		this.taskId = historyItem ? historyItem.id : crypto.randomUUID()
 		this.taskIsFavorited = historyItem?.isFavorited // kilocode_change
+
 		// Normal use-case is usually retry similar history task with new workspace.
 		this.workspacePath = parentTask
 			? parentTask.workspacePath
 			: getWorkspacePath(path.join(os.homedir(), "Documents")) // kilocode_change: use Documents instead of Desktop as default
 
 		this.instanceId = crypto.randomUUID().slice(0, 8)
+
+		logTask(this.taskId, "constructor", {
+			isHistoryItem: !!historyItem,
+			hasTask: !!task,
+			hasImages: !!images,
+			startTask,
+			taskNumber,
+			instanceId: this.instanceId,
+		})
 		this.taskNumber = -1
 
 		this.rooIgnoreController = new RooIgnoreController(this.cwd)
@@ -2142,7 +2153,13 @@ export class Task extends EventEmitter<TaskEvents> {
 				{
 					maxConcurrentFileReads: maxConcurrentFileReads ?? 5,
 					todoListEnabled: apiConfiguration?.todoListEnabled ?? true,
-					useAgentRules: vscode.workspace.getConfiguration("roo-cline").get<boolean>("useAgentRules") ?? true,
+					useAgentRules: (() => {
+						logVSCodeAPI("workspace.getConfiguration", { section: "roo-cline", key: "useAgentRules" })
+						const value =
+							vscode.workspace.getConfiguration("roo-cline").get<boolean>("useAgentRules") ?? true
+						logConfig("get", "roo-cline.useAgentRules", value)
+						return value
+					})(),
 				},
 			)
 		})()
