@@ -68,21 +68,6 @@ export const webviewMessageHandler = async (
 	message: WebviewMessage,
 	marketplaceManager?: MarketplaceManager,
 ) => {
-	// 🚀 Log all incoming webview messages for CLI debugging
-	console.log(`🚀 [WEBVIEW-IN] Received message from webview:`, {
-		type: message.type,
-		messageKeys: Object.keys(message),
-		timestamp: new Date().toISOString(),
-	})
-
-	// Log the full message for debugging (but truncate large payloads)
-	const messageForLog = { ...message }
-	if (messageForLog.type === "askResponse" || messageForLog.type === "newTask") {
-		console.log(`🚀 [WEBVIEW-IN] Important message:`, JSON.stringify(messageForLog, null, 2))
-	} else {
-		console.log(`🚀 [WEBVIEW-IN] Message details:`, JSON.stringify(messageForLog, null, 2))
-	}
-
 	// Utility functions provided for concise get/update of global state via contextProxy API.
 	const getGlobalState = <K extends keyof GlobalState>(key: K) => provider.contextProxy.getValue(key)
 	const updateGlobalState = async <K extends keyof GlobalState>(key: K, value: GlobalState[K]) =>

@@ -9,13 +9,11 @@ const config = {
     target: 'node18',
     outfile: 'dist/index.js',
     external: [
-        'fsevents', // Platform-specific dependency
-        'node-pty', // Native dependency
+        'fsevents',
+        'node-pty',
     ],
     alias: {
-        // Replace vscode module with our mock at build time
         'vscode': '@kilo-code/vscode-mock/dist/vscode-api',
-        // Replace @vscode/ripgrep with our mock
         '@vscode/ripgrep': '@kilo-code/vscode-mock/dist/mocks/ripgrep'
     },
     define: {
@@ -24,41 +22,31 @@ const config = {
     },
     format: 'cjs',
     sourcemap: true,
-    minify: false, // Keep readable for debugging
-    keepNames: true, // Preserve function names for better stack traces
+    minify: false,
+    keepNames: true,
     resolveExtensions: ['.ts', '.js', '.json', '.wasm'],
     loader: {
         '.json': 'json',
         '.wasm': 'binary'
     },
-    // Remove banner for now - will be added by the bin script
-    // banner: {
-    //   js: '#!/usr/bin/env node'
-    // },
     plugins: [
-        // Plugin to handle WASM files and copy them to output directory
         {
             name: 'wasm-loader',
             setup(build) {
-                // Handle .wasm files
                 build.onLoad({ filter: /\.wasm$/ }, async (args) => {
                     const wasmPath = args.path
                     const wasmData = await fs.promises.readFile(wasmPath)
                     const wasmBase64 = wasmData.toString('base64')
 
-                    // Copy WASM file to dist directory
                     const wasmFileName = path.basename(wasmPath)
                     const distWasmPath = path.join('dist', wasmFileName)
                     await fs.promises.mkdir('dist', { recursive: true })
                     await fs.promises.copyFile(wasmPath, distWasmPath)
-
-                    // Return JavaScript code that loads the WASM file
                     return {
                         contents: `
                             const fs = require('fs');
                             const path = require('path');
                             
-                            // Try to load WASM file from multiple possible locations
                             function loadWasm() {
                                 const wasmFileName = '${wasmFileName}';
                                 const possiblePaths = [
@@ -73,11 +61,10 @@ const config = {
                                             return fs.readFileSync(wasmPath);
                                         }
                                     } catch (e) {
-                                        // Continue to next path
+                                        continue;
                                     }
                                 }
                                 
-                                // Fallback to embedded base64 data
                                 return Buffer.from('${wasmBase64}', 'base64');
                             }
                             

@@ -659,60 +659,7 @@ export class ClineProvider
 	}
 
 	public async postMessageToWebview(message: ExtensionMessage) {
-		// 🚀 Log all webview communication for CLI debugging
-		console.log(`🚀 [WEBVIEW-OUT] Sending message to webview: ${message}`)
-
-		// Log the full message for debugging (but truncate large payloads)
-		const messageForLog = { ...message }
-		if (messageForLog.type === "state" && (messageForLog as any).state) {
-			const state = (messageForLog as any).state
-			// console.log(`🚀 [WEBVIEW-OUT] State message contains:`, {
-			// 	stateKeys: Object.keys(state),
-			// 	taskCount: state.tasks?.length || 0,
-			// 	currentTaskId: state.currentTaskId,
-			// })
-
-			// 🎯 CRITICAL: Log the final message details to understand why subtask is paused
-			if (state.clineMessages && state.clineMessages.length > 0) {
-				const finalMessage = state.clineMessages[state.clineMessages.length - 1]
-				console.log(`🚀 [WEBVIEW-OUT] 🎯 FINAL MESSAGE ANALYSIS:`, {
-					type: finalMessage.type,
-					partial: finalMessage.partial,
-					ask: finalMessage.ask,
-					say: finalMessage.say,
-					tool: finalMessage.tool,
-					text: finalMessage.text ? finalMessage.text.substring(0, 100) + "..." : undefined,
-					ts: finalMessage.ts,
-					messageIndex: state.clineMessages.length - 1,
-				})
-
-				// Show what buttons the webview should display based on this message
-				if (finalMessage.type === "ask" && !finalMessage.partial) {
-					console.log(`🚀 [WEBVIEW-OUT] 🔘 WEBVIEW SHOULD SHOW: Approval buttons for "${finalMessage.ask}"`)
-				} else if (finalMessage.type === "tool" && !finalMessage.partial) {
-					console.log(
-						`🚀 [WEBVIEW-OUT] 🔘 WEBVIEW SHOULD SHOW: Tool approval buttons for "${finalMessage.tool}"`,
-					)
-				} else if (finalMessage.partial === true) {
-					console.log(`🚀 [WEBVIEW-OUT] 🔘 WEBVIEW SHOULD SHOW: Streaming indicator (partial message)`)
-				} else {
-					console.log(
-						`🚀 [WEBVIEW-OUT] 🔘 WEBVIEW SHOULD SHOW: No buttons (${finalMessage.type}, partial: ${finalMessage.partial})`,
-					)
-				}
-			} else {
-				console.log(`🚀 [WEBVIEW-OUT] 🎯 NO MESSAGES: State has no clineMessages array`)
-			}
-		} else {
-			console.log(
-				`🚀 [WEBVIEW-OUT] Full message: ${messageForLog.type} | ${messageForLog.clineMessage?.type ?? ""}:${messageForLog.clineMessage?.ask ?? ""} | ${messageForLog.clineMessage?.text?.slice(0, 1024 * 4) ?? ""}`,
-				// JSON.stringify(messageForLog, null, 2),
-			)
-		}
-
 		await this.view?.webview.postMessage(message)
-
-		console.log(`🚀 [WEBVIEW-OUT] Message sent successfully`)
 	}
 
 	private async getHMRHtmlContent(webview: vscode.Webview): Promise<string> {

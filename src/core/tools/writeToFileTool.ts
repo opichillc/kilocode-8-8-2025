@@ -167,21 +167,10 @@ export async function writeToFileTool(
 			const diagnosticsEnabled = state?.diagnosticsEnabled ?? true
 			const writeDelayMs = state?.writeDelayMs ?? DEFAULT_WRITE_DELAY_MS
 
-			// Debug logging for CLI mode
-			console.log(`[DEBUG] writeToFileTool: provider exists:`, !!provider)
-			console.log(`[DEBUG] writeToFileTool: state exists:`, !!state)
-			console.log(`[DEBUG] writeToFileTool: state.experiments:`, state?.experiments)
-			console.log(
-				`[DEBUG] writeToFileTool: EXPERIMENT_IDS.PREVENT_FOCUS_DISRUPTION:`,
-				EXPERIMENT_IDS.PREVENT_FOCUS_DISRUPTION,
-			)
-
 			const isPreventFocusDisruptionEnabled = experiments.isEnabled(
 				state?.experiments ?? {},
 				EXPERIMENT_IDS.PREVENT_FOCUS_DISRUPTION,
 			)
-
-			console.log(`[DEBUG] writeToFileTool: isPreventFocusDisruptionEnabled:`, isPreventFocusDisruptionEnabled)
 
 			if (isPreventFocusDisruptionEnabled) {
 				// Direct file write without diff view
