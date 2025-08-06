@@ -69,21 +69,15 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 		this.options = options
 
 		const baseURL = this.options.openRouterBaseUrl || "https://openrouter.ai/api/v1"
-		// Use openRouterApiKey specifically, with apiKey as fallback
 		const apiKey = this.options.openRouterApiKey || this.options.apiKey || "not-provided"
 
-		// Debug the API key being used
-		console.log(`[OpenRouter] Initializing with API key: ${apiKey ? "***" + apiKey.slice(-4) : "not-provided"}`)
-
-		// Create custom headers with the API key in the Authorization header
 		const customHeaders = {
 			...DEFAULT_HEADERS,
 			Authorization: `Bearer ${apiKey}`,
-			"HTTP-Referer": "https://kilocode.com", // Required by OpenRouter
-			"X-Title": "Kilo CLI", // Required by OpenRouter
+			"HTTP-Referer": "https://kilocode.com",
+			"X-Title": "Kilo CLI",
 		}
 
-		// Initialize the OpenAI client with the custom headers
 		this.client = new OpenAI({
 			baseURL,
 			apiKey,
@@ -93,19 +87,13 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 
 	// kilocode_change start
 	customRequestOptions(_metadata?: ApiHandlerCreateMessageMetadata): OpenAI.RequestOptions | undefined {
-		// Get the API key from options
 		const apiKey = this.options.openRouterApiKey || this.options.apiKey || "not-provided"
 
-		// Create custom headers with the API key in the Authorization header
 		const headers = {
 			Authorization: `Bearer ${apiKey}`,
-			"HTTP-Referer": "https://kilocode.com", // Required by OpenRouter
-			"X-Title": "Kilo CLI", // Required by OpenRouter
+			"HTTP-Referer": "https://kilocode.com",
+			"X-Title": "Kilo CLI",
 		}
-
-		console.log(
-			`[OpenRouter] Adding custom request headers with API key: ${apiKey ? "***" + apiKey.slice(-4) : "not-provided"}`,
-		)
 
 		return {
 			headers,
@@ -183,15 +171,6 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 			...(reasoning && { reasoning }),
 		}
 
-		// kilocode_change start - Add enhanced debugging
-		// console.log(`[OpenRouter DEBUG] Making API request:`)
-		// console.log(`  Model: ${modelId}`)
-		// console.log(
-		// 	`  API Key: ${this.options.openRouterApiKey ? "***" + this.options.openRouterApiKey.slice(-4) : "not provided"}`,
-		// )
-		// console.log(`  Base URL: ${this.options.openRouterBaseUrl || "https://openrouter.ai/api/v1"}`)
-		// kilocode_change end
-
 		let stream
 		try {
 			stream = await this.client.chat.completions.create(
@@ -199,15 +178,6 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 				this.customRequestOptions(metadata), // kilocode_change
 			)
 		} catch (error) {
-			// kilocode_change start - Enhanced error logging
-			console.error(`[OpenRouter ERROR] API request failed:`)
-			console.error(error)
-			if (error.response) {
-				console.error(`Status: ${error.response.status}`)
-				console.error(`Headers:`, error.response.headers)
-				console.error(`Data:`, error.response.data)
-			}
-			// kilocode_change end
 			throw error
 		}
 
@@ -238,9 +208,6 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 			}
 		} catch (error) {
 			let errorMessage = makeOpenRouterErrorReadable(error)
-			// kilocode_change start - Enhanced error logging
-			console.error(`[OpenRouter STREAM ERROR]:`, error)
-			// kilocode_change end
 			throw new Error(errorMessage)
 		}
 
@@ -273,12 +240,7 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 	}
 
 	override getModel() {
-		// Use openRouterModelId specifically, with apiModelId as fallback, then default
 		const id = this.options.openRouterModelId || this.options.apiModelId || openRouterDefaultModelId
-
-		// Debug the model ID being used
-		// console.log(`[OpenRouter] Using model ID: ${id}`)
-
 		let info = this.models[id] ?? openRouterDefaultModelInfo
 
 		// If a specific provider is requested, use the endpoint for that provider.
