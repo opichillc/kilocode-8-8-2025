@@ -8,12 +8,23 @@ import { type Page } from "@playwright/test"
  */
 export async function closeAllToastNotifications(page: Page, timeout: number = 0): Promise<void> {
 	try {
-		await page.waitForSelector(".notification-list-item", { timeout })
+		// Look for notifications specifically in the notification container/area
+		// This is more specific than just looking for .notification-list-item anywhere
+		const notificationContainer = page.locator(
+			".notifications-center, .notification-toast-container, .notifications-list",
+		)
+		const containerExists = (await notificationContainer.count()) > 0
+		if (!containerExists) {
+			return
+		}
 
-		// Handle notification-list-item notifications (the ones we found working)
-		const notificationItems = page.locator(".notification-list-item")
+		const notificationItems = notificationContainer.locator(".notification-list-item")
 		const notificationCount = await notificationItems.count()
-		console.log(`🔍 Found ${notificationCount} notifications to close...`)
+		if (notificationCount === 0) {
+			return
+		}
+
+		console.log(`🔍 Found ${notificationCount} notifications in container to close...`)
 
 		// Close notifications by hovering and clicking their close buttons
 		for (let i = 0; i < notificationCount; i++) {
@@ -22,10 +33,14 @@ export async function closeAllToastNotifications(page: Page, timeout: number = 0
 			if (isVisible) {
 				await notification.hover()
 				const closeButton = notification.locator(".codicon-notifications-clear")
-				await closeButton.click()
+				const closeButtonExists = (await closeButton.count()) > 0
+				if (closeButtonExists) {
+					await closeButton.click()
+					console.log(`✅ Closed notification #${i}`)
+				}
 			}
 		}
-	} catch {
-		return // No notifications found! That's ok
+	} catch (_error) {
+		return
 	}
 }

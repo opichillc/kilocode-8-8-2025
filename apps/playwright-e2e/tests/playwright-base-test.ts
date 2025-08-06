@@ -7,7 +7,8 @@ import * as fs from "fs"
 import { fileURLToPath } from "url"
 import { camelCase } from "change-case"
 import { setupConsoleLogging, cleanLogMessage } from "../helpers/console-logging"
-import { closeAllTabs, closeAllToastNotifications, waitForAllExtensionActivation } from "../helpers"
+import { closeAllToastNotifications } from "../helpers/notification-helpers"
+import { waitForAllExtensionActivation, closeAllTabs } from "../helpers"
 
 // ES module equivalent of __dirname
 const __filename = fileURLToPath(import.meta.url)
