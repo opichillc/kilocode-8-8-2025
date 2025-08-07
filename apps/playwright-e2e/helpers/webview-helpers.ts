@@ -72,4 +72,9 @@ export async function configureApiKeyThroughUI(page: Page): Promise<void> {
 	await submitButton.waitFor()
 	await submitButton.click()
 	console.log("✅ Provider configured!")
+
+	// Waiting for models to load (bottom API config to appear)...
+	const bottomApiConfig = webviewFrame.locator('[data-testid="bottom-api-config"]')
+	await bottomApiConfig.waitFor({ state: "visible", timeout: 10000 })
+	console.log("✅ Model loaded successfully!")
 }
