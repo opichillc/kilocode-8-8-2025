@@ -95,6 +95,10 @@ export class VirtualQuotaFallbackHandler implements ApiHandler {
 		return this.activeHandler.getModel()
 	}
 
+	fetchModel() {
+		return Promise.resolve(this.getModel())
+	}
+
 	private async loadConfiguredProfiles(): Promise<void> {
 		this.handlerConfigs = []
 

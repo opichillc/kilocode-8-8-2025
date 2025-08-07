@@ -16,6 +16,16 @@ describe("maybeRemoveImageBlocks", () => {
 					supportsImages,
 				} as ModelInfo,
 			}),
+			// kilocode_change start
+			fetchModel: vitest.fn().mockReturnValue(
+				Promise.resolve({
+					id: "test-model",
+					info: {
+						supportsImages,
+					} as ModelInfo,
+				}),
+			),
+			// kilocode_change end
 			createMessage: vitest.fn(),
 			countTokens: vitest.fn(),
 		}

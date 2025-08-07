@@ -8,6 +8,7 @@ export function maybeRemoveImageBlocks(messages: ApiMessage[], apiHandler: ApiHa
 		// Handle array content (could contain image blocks).
 		let { content } = message
 		if (Array.isArray(content)) {
+			// kilocode_todo: await fetchModel
 			if (!apiHandler.getModel().info.supportsImages) {
 				// Convert image blocks to text descriptions.
 				content = content.map((block) => {

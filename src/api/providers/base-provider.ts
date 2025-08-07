@@ -18,6 +18,12 @@ export abstract class BaseProvider implements ApiHandler {
 
 	abstract getModel(): { id: string; info: ModelInfo }
 
+	// kilocode_change start
+	fetchModel() {
+		return Promise.resolve(this.getModel())
+	}
+	// kilocode_change end
+
 	/**
 	 * Default token counting implementation using tiktoken.
 	 * Providers can override this to use their native token counting endpoints.

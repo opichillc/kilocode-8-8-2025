@@ -84,7 +84,7 @@ export class GhostModel {
 			return null
 		}
 		// Extract model name from API handler
-		return this.apiHandler.getModel().id ?? "unknown"
+		return this.apiHandler.getModel().id ?? "unknown" // TODO: await fetchModel
 	}
 
 	public hasValidCredentials(): boolean {

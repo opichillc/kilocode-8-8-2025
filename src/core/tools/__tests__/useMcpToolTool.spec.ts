@@ -64,6 +64,14 @@ describe("useMcpToolTool", () => {
 						contextWindow: 200000,
 					},
 				}),
+				// kilocode_change start
+				fetchModel: vi.fn().mockReturnValue({
+					id: "claude-3",
+					info: {
+						contextWindow: 200000,
+					},
+				}),
+				// kilocode_change end
 				countTokens: vi.fn().mockResolvedValue(100),
 				createMessage: vi.fn().mockResolvedValue({ text: "mock response" }),
 			},
