@@ -60,7 +60,7 @@ export interface ApiHandler {
 		metadata?: ApiHandlerCreateMessageMetadata,
 	): ApiStream
 
-	getModel(): { id: string; info: ModelInfo } // kilocode_todo: remove from interface
+	// getModel(): { id: string; info: ModelInfo } // kilocode_change
 
 	fetchModel(): Promise<{ id: string; info: ModelInfo }> // kilocode_change
 

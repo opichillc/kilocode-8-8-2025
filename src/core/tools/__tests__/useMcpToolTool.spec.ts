@@ -58,12 +58,6 @@ describe("useMcpToolTool", () => {
 			lastMessageTs: 123456789,
 			providerRef: mockProviderRef,
 			api: {
-				getModel: vi.fn().mockReturnValue({
-					id: "claude-3",
-					info: {
-						contextWindow: 200000,
-					},
-				}),
 				// kilocode_change start
 				fetchModel: vi.fn().mockReturnValue({
 					id: "claude-3",

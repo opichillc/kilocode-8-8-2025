@@ -2267,7 +2267,8 @@ export class Task extends EventEmitter<TaskEvents> {
 		}
 
 		const messagesSinceLastSummary = getMessagesSinceLastSummary(this.apiConversationHistory)
-		const cleanConversationHistory = maybeRemoveImageBlocks(messagesSinceLastSummary, this.api).map(
+		// kilocode_change: await
+		const cleanConversationHistory = (await maybeRemoveImageBlocks(messagesSinceLastSummary, this.api)).map(
 			({ role, content }) => ({ role, content }),
 		)
 

@@ -16,9 +16,10 @@ export abstract class BaseProvider implements ApiHandler {
 		metadata?: ApiHandlerCreateMessageMetadata,
 	): ApiStream
 
+	// kilocode_change start
+	// getModel is still here for mergeability, but is no longer in the interface and fetchModel should be used instead
 	abstract getModel(): { id: string; info: ModelInfo }
 
-	// kilocode_change start
 	fetchModel() {
 		return Promise.resolve(this.getModel())
 	}
