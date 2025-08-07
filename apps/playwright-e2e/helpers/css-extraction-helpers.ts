@@ -1,5 +1,13 @@
+// kilocode_change - new file
 import * as fs from "fs"
 import * as path from "path"
+import { Page, FrameLocator } from "@playwright/test"
+
+export const extractVariablesForTheme = async (workbox: Page, webviewFrame: FrameLocator) => {
+	const mainWindowVariables = await workbox.evaluate(extractAllCSSVariables)
+	const webviewVariables = await webviewFrame.locator("body").evaluate(extractAllCSSVariables)
+	return { ...webviewVariables, ...mainWindowVariables }
+}
 
 export const extractAllCSSVariables = (): Record<string, string> => {
 	const variables: Record<string, string> = {}
@@ -74,4 +82,3 @@ export const saveVariablesToFile = async (cssOutput: string, finalFilename: stri
 	await fs.promises.writeFile(outputPath, cssOutput)
 	return outputPath
 }
-
