@@ -719,6 +719,11 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		// Cleanup function to handle component unmount
 		return () => {
 			isProcessingQueueRef.current = false
+			// kilocode_change start // Clear any pending queue processing
+			if (messageQueue.length > 0) {
+				setMessageQueue([])
+			}
+			// kilocode_change end
 		}
 	}, [sendingDisabled, messageQueue, handleSendMessage, clineAsk])
 
@@ -1422,9 +1427,23 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 		setHighlightedMessageIndex(index)
 		virtuosoRef.current?.scrollToIndex({ index, align: "end", behavior: "smooth" })
 
-		// Clear the highlight after a delay
-		clearTimeout(highlightClearTimerRef.current)
-		highlightClearTimerRef.current = setTimeout(() => setHighlightedMessageIndex(null), 1000)
+		// Clear existing timer if present
+		if (highlightClearTimerRef.current) {
+			clearTimeout(highlightClearTimerRef.current)
+		}
+		highlightClearTimerRef.current = setTimeout(() => {
+			setHighlightedMessageIndex(null)
+			highlightClearTimerRef.current = undefined
+		}, 1000)
+	}, [])
+
+	// Cleanup highlight timer on unmount
+	useEffect(() => {
+		return () => {
+			if (highlightClearTimerRef.current) {
+				clearTimeout(highlightClearTimerRef.current)
+			}
+		}
 	}, [])
 	// kilocode_change end
 
@@ -1480,8 +1499,7 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 			}
 		}
 	}, [])
-
-	useEvent("wheel", handleWheel, window, { passive: true }) // passive improves scrolling performance
+	//kilocode_change
 
 	// Effect to handle showing the checkpoint warning after a delay
 	useEffect(() => {
@@ -1699,10 +1717,20 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 					if (followUpData && followUpData.suggest && followUpData.suggest.length > 0) {
 						// Wait for the configured timeout before auto-selecting the first suggestion
 						await new Promise<void>((resolve) => {
+							// kilocode_change start
+							if (!isMountedRef.current) {
+								resolve()
+								return
+							}
 							autoApproveTimeoutRef.current = setTimeout(() => {
+								if (!isMountedRef.current) {
+									resolve()
+									return
+								}
 								autoApproveTimeoutRef.current = null
 								resolve()
 							}, followupAutoApproveTimeoutMs)
+							// kilocode_change end
 						})
 
 						// Check if user responded manually
@@ -1718,12 +1746,22 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 						return
 					}
 				} else if (lastMessage.ask === "tool" && isWriteToolAction(lastMessage)) {
+					// kilocode_change start
 					await new Promise<void>((resolve) => {
+						if (!isMountedRef.current) {
+							resolve()
+							return
+						}
 						autoApproveTimeoutRef.current = setTimeout(() => {
+							if (!isMountedRef.current) {
+								resolve()
+								return
+							}
 							autoApproveTimeoutRef.current = null
 							resolve()
 						}, writeDelayMs)
 					})
+					// kilocode_change end
 				}
 
 				vscode.postMessage({ type: "askResponse", askResponse: "yesButtonClicked" })
@@ -1810,10 +1848,12 @@ const ChatViewComponent: React.ForwardRefRenderFunction<ChatViewRef, ChatViewPro
 	// Add event listener
 	useEffect(() => {
 		window.addEventListener("keydown", handleKeyDown)
+		window.addEventListener("wheel", handleWheel, { passive: true }) // kilocode_change
 		return () => {
 			window.removeEventListener("keydown", handleKeyDown)
+			window.removeEventListener("wheel", handleWheel) // kilocode_change
 		}
-	}, [handleKeyDown])
+	}, [handleKeyDown, handleWheel]) // kilocode_change
 
 	useImperativeHandle(ref, () => ({
 		acceptInput: () => {
