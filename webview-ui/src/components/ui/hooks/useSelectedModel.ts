@@ -23,6 +23,12 @@ import {
 	vertexModels,
 	xaiDefaultModelId,
 	xaiModels,
+	// kilocode_change start
+	zaiModels,
+	zaiDefaultModelId,
+	bigModelModels,
+	bigModelDefaultModelId,
+	// kilocode_change end
 	groqModels,
 	groqDefaultModelId,
 	chutesModels,
@@ -37,9 +43,15 @@ import {
 	claudeCodeDefaultModelId,
 	claudeCodeModels,
 	kilocodeDefaultModelId,
+	sambaNovaModels,
+	sambaNovaDefaultModelId,
+	doubaoModels,
+	doubaoDefaultModelId,
+	fireworksDefaultModelId,
+	fireworksModels,
 } from "@roo-code/types"
 
-import { cerebrasModels, cerebrasDefaultModelId, fireworksDefaultModelId, fireworksModels } from "@roo/api" // kilocode_change
+import { cerebrasModels, cerebrasDefaultModelId } from "@roo/api" // kilocode_change
 
 import type { RouterModels } from "@roo/api"
 
@@ -142,6 +154,18 @@ function getSelectedModel({
 			const info = xaiModels[id as keyof typeof xaiModels]
 			return info ? { id, info } : { id, info: undefined }
 		}
+		// kilocode_change start
+		case "zai": {
+			const id = apiConfiguration.apiModelId ?? zaiDefaultModelId
+			const info = zaiModels[id as keyof typeof zaiModels]
+			return info ? { id, info } : { id, info: undefined }
+		}
+		case "bigmodel": {
+			const id = apiConfiguration.apiModelId ?? bigModelDefaultModelId
+			const info = bigModelModels[id as keyof typeof bigModelModels]
+			return { id, info }
+		}
+		// kilocode_change end
 		case "groq": {
 			const id = apiConfiguration.apiModelId ?? groqDefaultModelId
 			const info = groqModels[id as keyof typeof groqModels]
@@ -200,6 +224,11 @@ function getSelectedModel({
 		case "deepseek": {
 			const id = apiConfiguration.apiModelId ?? deepSeekDefaultModelId
 			const info = deepSeekModels[id as keyof typeof deepSeekModels]
+			return { id, info }
+		}
+		case "doubao": {
+			const id = apiConfiguration.apiModelId ?? doubaoDefaultModelId
+			const info = doubaoModels[id as keyof typeof doubaoModels]
 			return { id, info }
 		}
 		case "moonshot": {
@@ -281,12 +310,9 @@ function getSelectedModel({
 			}
 		}
 		case "fireworks": {
-			return {
-				id: apiConfiguration.fireworksModelId ?? fireworksDefaultModelId,
-				info: fireworksModels[
-					(apiConfiguration.fireworksModelId ?? fireworksDefaultModelId) as keyof typeof fireworksModels
-				],
-			}
+			const id = apiConfiguration.apiModelId ?? fireworksDefaultModelId
+			const info = fireworksModels[id as keyof typeof fireworksModels]
+			return { id, info }
 		}
 		case "virtual-quota-fallback": {
 			return {
@@ -303,6 +329,11 @@ function getSelectedModel({
 			const id = apiConfiguration.apiModelId ?? claudeCodeDefaultModelId
 			const info = claudeCodeModels[id as keyof typeof claudeCodeModels]
 			return { id, info: { ...openAiModelInfoSaneDefaults, ...info } }
+		}
+		case "sambanova": {
+			const id = apiConfiguration.apiModelId ?? sambaNovaDefaultModelId
+			const info = sambaNovaModels[id as keyof typeof sambaNovaModels]
+			return { id, info }
 		}
 		// case "anthropic":
 		// case "human-relay":
