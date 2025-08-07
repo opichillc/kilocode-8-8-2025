@@ -1,8 +1,6 @@
 # kilo-code
 
-## 4.77.2
-
-### Patch Changes
+## [v4.77.2]
 
 - [#1814](https://github.com/Kilo-Org/kilocode/pull/1814) [`3e7290e`](https://github.com/Kilo-Org/kilocode/commit/3e7290e49974d26ee55bcaef743edb527e214735) Thanks [@chrarnoldus](https://github.com/chrarnoldus)! - Removed "Press Ctrl+Shift+G to generate terminal commands" message
 
