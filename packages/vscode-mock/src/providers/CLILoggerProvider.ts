@@ -1,17 +1,51 @@
 import * as fs from "fs/promises"
 import * as path from "path"
-import type {
-	ILogger,
-	LogMetadata,
-	LogContext,
-	LogEntry,
-	LogTransport,
-	ConsoleTransportOptions,
-	FileTransportOptions,
-	LogFormatter,
-	ProgressLogger,
-} from "@kilo-code/core"
-import { LogLevel, ConsoleTransport } from "@kilo-code/core"
+import type { ILogger, LogMetadata, LogContext } from "../types"
+import { LogLevel } from "../types"
+
+// Additional interfaces needed for this provider
+export interface LogEntry {
+	level: LogLevel
+	message: string
+	timestamp: Date
+	meta: LogMetadata
+	error?: Error
+}
+
+export interface LogTransport {
+	name: string
+	level: LogLevel
+	enabled: boolean
+	write(entry: LogEntry): Promise<void>
+	flush(): Promise<void>
+	close(): Promise<void>
+}
+
+export interface FileTransportOptions {
+	filename: string
+	maxSize?: number
+	maxFiles?: number
+	append?: boolean
+	format?: (entry: LogEntry) => string
+}
+
+export interface ConsoleTransportOptions {
+	level?: LogLevel
+	colorize?: boolean
+	format?: (entry: LogEntry) => string
+}
+
+export interface LogFormatter {
+	format(entry: LogEntry): string
+}
+
+export interface ProgressLogger {
+	update(current: number, message?: string): void
+	increment(message?: string): void
+	complete(message?: string): void
+	fail(error: Error, message?: string): void
+	getProgress(): number
+}
 
 /**
  * File transport for logging to files.
@@ -62,7 +96,8 @@ class FileTransport implements LogTransport {
 
 	private defaultFormat(entry: LogEntry): string {
 		const timestamp = entry.timestamp.toISOString()
-		const level = LogLevel[entry.level].toUpperCase()
+		const levelName = Object.keys(LogLevel)[Object.values(LogLevel).indexOf(entry.level)]
+		const level = levelName?.toUpperCase() || "UNKNOWN"
 		const component = entry.meta.component ? `[${entry.meta.component}]` : ""
 
 		let message = `${timestamp} [${level}] ${component} ${entry.message}`
@@ -162,6 +197,42 @@ class CLIProgressLogger implements ProgressLogger {
 }
 
 /**
+ * Console transport for logging to stdout/stderr
+ */
+class ConsoleTransport implements LogTransport {
+	name: string = "console"
+	level: LogLevel
+	enabled: boolean = true
+
+	constructor(level: LogLevel = LogLevel.Info) {
+		this.level = level
+	}
+
+	async write(entry: LogEntry): Promise<void> {
+		if (!this.enabled || entry.level < this.level) return
+
+		const timestamp = new Date(entry.timestamp).toISOString()
+		const levelName = LogLevel[entry.level] || "UNKNOWN"
+		const formattedMessage = `[${timestamp}] ${levelName}: ${entry.message}`
+
+		// Log errors to stderr, everything else to stdout
+		if (entry.level >= LogLevel.Error) {
+			console.error(formattedMessage, entry.meta)
+		} else {
+			console.log(formattedMessage, entry.meta)
+		}
+	}
+
+	async flush(): Promise<void> {
+		// Console doesn't need flushing
+	}
+
+	async close(): Promise<void> {
+		// Console doesn't need closing
+	}
+}
+
+/**
  * CLI implementation of the ILogger interface.
  * Provides comprehensive logging capabilities for command-line environments.
  */
@@ -224,11 +295,11 @@ export class CLILoggerProvider implements ILogger {
 		return childLogger
 	}
 
-	setLevel(level: LogLevel): void {
-		this.level = level
+	setLevel(level: number): void {
+		this.level = level as LogLevel
 	}
 
-	getLevel(): LogLevel {
+	getLevel(): number {
 		return this.level
 	}
 
@@ -252,7 +323,11 @@ export class CLILoggerProvider implements ILogger {
 	}
 
 	async flush(): Promise<void> {
-		await Promise.all(this.transports.map((transport) => transport.flush()))
+		await Promise.all(
+			this.transports
+				.filter((transport) => transport && typeof transport.flush === "function")
+				.map((transport) => transport.flush()),
+		)
 	}
 
 	time(label: string): void {
@@ -322,7 +397,11 @@ export class CLILoggerProvider implements ILogger {
 	 */
 	async dispose(): Promise<void> {
 		await this.flush()
-		await Promise.all(this.transports.map((transport) => transport.close()))
+		await Promise.all(
+			this.transports
+				.filter((transport) => transport && typeof transport.close === "function")
+				.map((transport) => transport.close()),
+		)
 		this.transports = []
 		this.timers.clear()
 	}

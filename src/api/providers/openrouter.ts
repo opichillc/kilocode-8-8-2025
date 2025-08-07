@@ -69,35 +69,14 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 		this.options = options
 
 		const baseURL = this.options.openRouterBaseUrl || "https://openrouter.ai/api/v1"
-		const apiKey = this.options.openRouterApiKey || this.options.apiKey || "not-provided"
+		const apiKey = this.options.openRouterApiKey ?? "not-provided"
 
-		const customHeaders = {
-			...DEFAULT_HEADERS,
-			Authorization: `Bearer ${apiKey}`,
-			"HTTP-Referer": "https://kilocode.com",
-			"X-Title": "Kilo CLI",
-		}
-
-		this.client = new OpenAI({
-			baseURL,
-			apiKey,
-			defaultHeaders: customHeaders,
-		})
+		this.client = new OpenAI({ baseURL, apiKey, defaultHeaders: DEFAULT_HEADERS })
 	}
 
 	// kilocode_change start
 	customRequestOptions(_metadata?: ApiHandlerCreateMessageMetadata): OpenAI.RequestOptions | undefined {
-		const apiKey = this.options.openRouterApiKey || this.options.apiKey || "not-provided"
-
-		const headers = {
-			Authorization: `Bearer ${apiKey}`,
-			"HTTP-Referer": "https://kilocode.com",
-			"X-Title": "Kilo CLI",
-		}
-
-		return {
-			headers,
-		}
+		return undefined
 	}
 
 	getTotalCost(lastUsage: CompletionUsage): number {
@@ -170,16 +149,11 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 			...(transforms && { transforms }),
 			...(reasoning && { reasoning }),
 		}
-
 		let stream
-		try {
-			stream = await this.client.chat.completions.create(
-				completionParams,
-				this.customRequestOptions(metadata), // kilocode_change
-			)
-		} catch (error) {
-			throw error
-		}
+		stream = await this.client.chat.completions.create(
+			completionParams,
+			this.customRequestOptions(metadata), // kilocode_change
+		)
 
 		let lastUsage: CompletionUsage | undefined = undefined
 
@@ -240,7 +214,7 @@ export class OpenRouterHandler extends BaseProvider implements SingleCompletionH
 	}
 
 	override getModel() {
-		const id = this.options.openRouterModelId || this.options.apiModelId || openRouterDefaultModelId
+		const id = this.options.openRouterModelId ?? openRouterDefaultModelId
 		let info = this.models[id] ?? openRouterDefaultModelInfo
 
 		// If a specific provider is requested, use the endpoint for that provider.

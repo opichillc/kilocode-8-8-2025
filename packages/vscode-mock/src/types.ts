@@ -5,10 +5,10 @@
 
 // Log levels
 export enum LogLevel {
-	Debug = "debug",
-	Info = "info",
-	Warn = "warn",
-	Error = "error",
+	Debug = 0,
+	Info = 1,
+	Warn = 2,
+	Error = 3,
 }
 
 // Platform features
@@ -58,6 +58,55 @@ export interface ILogger {
 	timeEnd(label: string): void
 }
 
+// Console transport implementation
+export class ConsoleTransport {
+	name = "console"
+	level: LogLevel
+	enabled: boolean = true
+
+	constructor(level: LogLevel = LogLevel.Info) {
+		this.level = level
+	}
+
+	async write(entry: any): Promise<void> {
+		if (!this.enabled || entry.level < this.level) {
+			return
+		}
+
+		const timestamp = entry.timestamp.toISOString()
+		const levelName = Object.keys(LogLevel)[Object.values(LogLevel).indexOf(entry.level)]
+		const component = entry.meta.component ? `[${entry.meta.component}]` : ""
+
+		let message = `${timestamp} [${levelName}] ${component} ${entry.message}`
+
+		if (entry.error) {
+			message += `\n${entry.error.stack || entry.error.message}`
+		}
+
+		switch (entry.level) {
+			case LogLevel.Error:
+				console.error(message)
+				break
+			case LogLevel.Warn:
+				console.warn(message)
+				break
+			case LogLevel.Debug:
+				console.debug(message)
+				break
+			default:
+				console.log(message)
+		}
+	}
+
+	async flush(): Promise<void> {
+		// Console doesn't need flushing
+	}
+
+	async close(): Promise<void> {
+		// Console doesn't need closing
+	}
+}
+
 export interface LogContext {
 	[key: string]: any
 }
@@ -70,7 +119,9 @@ export interface ExecutionOptions {
 	cwd?: string
 	env?: Record<string, string>
 	timeout?: number
-	shell?: boolean
+	shell?: boolean | string
+	maxBuffer?: number
+	encoding?: BufferEncoding
 }
 
 export interface ExecutionResult {
@@ -79,6 +130,18 @@ export interface ExecutionResult {
 	stdout: string
 	stderr: string
 	error?: Error
+	duration?: number
+	command?: string
+	pid?: number
+	signal?: string
+}
+
+export interface SpawnOptions {
+	cwd?: string
+	env?: Record<string, string>
+	stdio?: "pipe" | "inherit" | "ignore"
+	detached?: boolean
+	shell?: boolean | string
 }
 
 export interface ProgressReporter {
@@ -183,14 +246,14 @@ export interface ConfigurationWatcher {
 }
 
 export interface ConfigurationSchema {
-	[key: string]:
-		| {
-				type: string
-				default?: any
-				description?: string
-				enum?: any[]
-		  }
-		| string[]
+	properties: {
+		[key: string]: {
+			type: string
+			default?: any
+			description?: string
+			enum?: any[]
+		}
+	}
 	required?: string[]
 }
 
@@ -286,7 +349,7 @@ export interface OutputOptions {
 // Process Executor types
 export interface IProcessExecutor {
 	execute(command: string, options?: ExecutionOptions): Promise<ExecutionResult>
-	spawn(command: string, args?: string[], options?: SpawnOptions): Promise<ProcessHandle>
+	spawn(command: string, options?: SpawnOptions): Promise<ProcessHandle>
 	getCwd(): string
 	setCwd(path: string): void
 	getEnv(): Record<string, string>
@@ -296,17 +359,19 @@ export interface IProcessExecutor {
 export interface SpawnOptions {
 	cwd?: string
 	env?: Record<string, string>
-	shell?: boolean
+	stdio?: "pipe" | "inherit" | "ignore"
 	detached?: boolean
+	shell?: boolean | string
 }
 
 export interface ProcessHandle {
 	pid: number
 	kill(signal?: ProcessSignal): void
 	wait(): Promise<ExecutionResult>
-	onExit(callback: (code: number, signal?: string) => void): void
+	onExit(callback: (code: number | null, signal?: string | null) => void): void
 	onStdout(callback: (data: string) => void): void
 	onStderr(callback: (data: string) => void): void
+	isRunning(): Promise<boolean>
 }
 
 export enum ProcessSignal {

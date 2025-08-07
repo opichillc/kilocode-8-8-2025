@@ -2,18 +2,16 @@
 	"name": "@kilo-code/vscode-mock",
 	"version": "0.1.0",
 	"description": "VS Code API mocking package for Kilo Code CLI and testing",
+	"type": "module",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"scripts": {
-		"build": "npm run build:index && npm run build:vscode-api && npm run build:mocks",
-		"build:index": "esbuild src/index.ts --bundle --platform=node --target=node18 --outfile=dist/index.js --format=cjs --alias:vscode=./src/vscode-api.ts",
-		"build:vscode-api": "esbuild src/vscode-api.ts --bundle --platform=node --target=node18 --outfile=dist/vscode-api.js --format=cjs --alias:vscode=./src/vscode-api.ts",
-		"build:mocks": "esbuild src/mocks/index.ts --bundle --platform=node --target=node18 --outfile=dist/mocks/ripgrep.js --format=cjs --alias:vscode=./src/vscode-api.ts",
-		"dev": "concurrently \"npm run dev:index\" \"npm run dev:vscode-api\" \"npm run dev:mocks\"",
-		"dev:index": "esbuild src/index.ts --bundle --platform=node --target=node18 --outfile=dist/index.js --format=cjs --watch --alias:vscode=./src/vscode-api.ts",
-		"dev:vscode-api": "esbuild src/vscode-api.ts --bundle --platform=node --target=node18 --outfile=dist/vscode-api.js --format=cjs --watch --alias:vscode=./src/vscode-api.ts",
-		"dev:mocks": "esbuild src/mocks/index.ts --bundle --platform=node --target=node18 --outfile=dist/mocks/ripgrep.js --format=cjs --watch --alias:vscode=./src/vscode-api.ts",
-		"test": "vitest",
+		"build": "npm run clean && esbuild src/index.ts --bundle --platform=node --target=node18 --outfile=dist/index.js --format=cjs --external:@roo-code/telemetry",
+		"build:types": "tsc --emitDeclarationOnly",
+		"build:full": "npm run build && npm run build:types",
+		"dev": "esbuild src/index.ts --bundle --platform=node --target=node18 --outfile=dist/index.js --format=cjs --watch --external:@roo-code/telemetry",
+		"test": "vitest run",
+		"test:watch": "vitest",
 		"lint": "eslint src/**/*.ts",
 		"clean": "rimraf dist"
 	},
@@ -40,6 +38,7 @@
 		"@roo-code/telemetry": "workspace:*"
 	},
 	"devDependencies": {
+		"@roo-code/config-eslint": "workspace:^",
 		"@types/fs-extra": "^11.0.4",
 		"@types/inquirer": "^9.0.7",
 		"@types/node": "^20.0.0",

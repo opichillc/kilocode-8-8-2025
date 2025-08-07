@@ -1,17 +1,37 @@
 import { spawn, exec, ChildProcess } from "child_process"
 import { promisify } from "util"
-import type {
-	IProcessExecutor,
-	ExecutionOptions,
-	StreamingExecutionOptions,
-	SpawnOptions,
-	ExecutionResult,
-	ProcessHandle,
-	ProcessInfo,
-	ProcessFilter,
-	ProcessSignal,
-} from "@kilo-code/core"
-import { ProcessStatus } from "@kilo-code/core"
+import type { IProcessExecutor, ExecutionOptions, ExecutionResult, ProcessHandle, ProcessSignal } from "../types"
+import { ProcessStatus } from "../types"
+
+// Additional interfaces needed for this provider
+export interface StreamingExecutionOptions extends ExecutionOptions {
+	onStdout?: (data: string) => void
+	onStderr?: (data: string) => void
+	onExit?: (code: number | null, signal: string | null) => void
+	onError?: (error: Error) => void
+	input?: string
+}
+
+export interface SpawnOptions {
+	cwd?: string
+	env?: Record<string, string>
+	stdio?: "pipe" | "inherit" | "ignore"
+	detached?: boolean
+	shell?: boolean | string
+}
+
+export interface ProcessInfo {
+	pid: number
+	name: string
+	command: string
+	status: ProcessStatus
+}
+
+export interface ProcessFilter {
+	name?: string
+	pid?: number
+	status?: ProcessStatus
+}
 
 const execAsync = promisify(exec)
 
@@ -365,7 +385,7 @@ export class CLIProcessExecutorProvider implements IProcessExecutor {
 		return this.currentWorkingDirectory
 	}
 
-	async setCwd(path: string): Promise<void> {
+	setCwd(path: string): void {
 		this.currentWorkingDirectory = path
 		process.chdir(path)
 	}
@@ -374,9 +394,9 @@ export class CLIProcessExecutorProvider implements IProcessExecutor {
 		return { ...this.environmentVariables }
 	}
 
-	async setEnv(env: Record<string, string>): Promise<void> {
-		this.environmentVariables = { ...this.environmentVariables, ...env }
-		Object.assign(process.env, env)
+	setEnv(key: string, value: string): void {
+		this.environmentVariables[key] = value
+		process.env[key] = value
 	}
 
 	getDefaultShell(): string {

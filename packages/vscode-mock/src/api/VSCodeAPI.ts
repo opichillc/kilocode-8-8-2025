@@ -562,6 +562,7 @@ export class VSCodeAPI {
 				const result = (await this.userInterface.askQuestion(
 					options?.placeHolder || "Select an option:",
 					"list",
+					itemLabels,
 				)) as string
 
 				if (typeof items[0] === "string") {

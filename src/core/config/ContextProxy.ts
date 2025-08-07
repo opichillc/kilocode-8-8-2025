@@ -75,12 +75,6 @@ export class ContextProxy {
 
 		await Promise.all(promises)
 
-		// CLI-specific: Ensure mode is set to 'code' for file operations
-		if (process.env.KILO_CLI === "true" && !this.stateCache.mode) {
-			this.stateCache.mode = "code"
-			await this.originalContext.globalState.update("mode", "code")
-		}
-
 		this._isInitialized = true
 	}
 

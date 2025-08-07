@@ -5,9 +5,10 @@ import { CLIProcessExecutorProvider } from "./CLIProcessExecutorProvider"
 import { CLILoggerProvider } from "./CLILoggerProvider"
 
 // Import shared types to avoid duplication
+import { PlatformFeatures } from "../types"
+
 import type {
 	IPlatformAdapter,
-	PlatformFeatures,
 	LogLevel,
 	ConfigurationScope,
 	ILogger,
@@ -55,18 +56,18 @@ export class CLIPlatformAdapter implements IPlatformAdapter {
 			return
 		}
 
-		this.logger.info("Initializing CLI platform adapter")
+		// this.logger.info("Initializing CLI platform adapter")
 
 		try {
 			// Initialize configuration first as other services may depend on it
 			await this.configuration.initialize()
-			this.logger.debug("Configuration provider initialized")
+			// this.logger.debug("Configuration provider initialized")
 
 			// Other providers don't need explicit initialization
-			this.logger.debug("All providers initialized successfully")
+			// this.logger.debug("All providers initialized successfully")
 
 			this.initialized = true
-			this.logger.info("CLI platform adapter initialized successfully")
+			// this.logger.info("CLI platform adapter initialized successfully")
 		} catch (error) {
 			this.logger.error("Failed to initialize CLI platform adapter", error as Error)
 			throw error

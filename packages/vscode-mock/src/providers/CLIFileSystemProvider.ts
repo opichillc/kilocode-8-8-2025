@@ -1,7 +1,7 @@
 import * as fs from "fs/promises"
 import * as fsSync from "fs"
 import * as path from "path"
-import type { IFileSystem, FileStats, DirectoryEntry, CopyOptions, FileWatchEvent, FileWatcher } from "@kilo-code/core"
+import type { IFileSystem, FileStats, DirectoryEntry, CopyOptions, FileWatchEvent, FileWatcher } from "../types"
 
 /**
  * CLI implementation of the IFileSystem interface using Node.js fs APIs.
@@ -32,10 +32,19 @@ export class CLIFileSystemProvider implements IFileSystem {
 	}
 
 	async exists(filePath: string): Promise<boolean> {
+		// Check for invalid path characters
+		if (filePath.includes("\0")) {
+			throw new Error(`Invalid path: ${filePath}`)
+		}
+
 		try {
 			await fs.access(filePath)
 			return true
-		} catch {
+		} catch (error: any) {
+			// Re-throw if it's a path validation error
+			if (error.code === "EINVAL" || error.code === "ENOTDIR") {
+				throw error
+			}
 			return false
 		}
 	}
@@ -100,9 +109,20 @@ export class CLIFileSystemProvider implements IFileSystem {
 	}
 
 	watch(watchPath: string, callback: (event: FileWatchEvent) => void): FileWatcher {
-		const watcher = fsSync.watch(watchPath, { recursive: true }, (eventType, filename) => {
+		// Check if the path exists, if not, watch the parent directory
+		let actualWatchPath = watchPath
+		if (!fsSync.existsSync(watchPath)) {
+			const parentDir = path.dirname(watchPath)
+			if (fsSync.existsSync(parentDir)) {
+				actualWatchPath = parentDir
+			} else {
+				throw new Error(`Cannot watch path: ${watchPath} - parent directory does not exist`)
+			}
+		}
+
+		const watcher = fsSync.watch(actualWatchPath, { recursive: true }, (eventType, filename) => {
 			if (filename) {
-				const fullPath = path.join(watchPath, filename)
+				const fullPath = path.join(actualWatchPath, filename)
 				let type: "created" | "modified" | "deleted"
 
 				// Simple mapping - Node.js fs.watch doesn't distinguish between created/modified well

@@ -48,7 +48,6 @@ import { downloadTask } from "../../integrations/misc/export-markdown"
 import { getTheme } from "../../integrations/theme/getTheme"
 import WorkspaceTracker from "../../integrations/workspace/WorkspaceTracker"
 import { McpHub } from "../../services/mcp/McpHub"
-import { logConfig, logVSCodeAPI } from "../logging/DebugLogger"
 import { McpServerManager } from "../../services/mcp/McpServerManager"
 import { MarketplaceManager } from "../../services/marketplace"
 import { ShadowCheckpointService } from "../../services/checkpoints/ShadowCheckpointService"
@@ -1472,9 +1471,7 @@ export class ClineProvider
 				: []
 
 			// Get workspace configuration commands
-			logVSCodeAPI("workspace.getConfiguration", { section: Package.name, key: configKey })
 			const workspaceCommands = vscode.workspace.getConfiguration(Package.name).get<string[]>(configKey) || []
-			logConfig("get", `${Package.name}.${configKey}`, { commandCount: workspaceCommands.length })
 
 			// Validate and sanitize workspace commands
 			const validWorkspaceCommands = Array.isArray(workspaceCommands)

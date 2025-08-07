@@ -2,6 +2,7 @@
 	"name": "@kilo-code/cli",
 	"version": "0.1.0",
 	"description": "Standalone CLI version of Kilo Code AI agent",
+	"type": "module",
 	"main": "dist/index.js",
 	"bin": {
 		"kilo-cli": "./bin/kilo-cli"
@@ -42,6 +43,7 @@
 		"zod": "^3.22.4"
 	},
 	"devDependencies": {
+		"@roo-code/config-eslint": "workspace:^",
 		"@types/fs-extra": "^11.0.4",
 		"@types/inquirer": "^9.0.7",
 		"@types/node": "^20.0.0",

@@ -239,9 +239,9 @@ export class CLIUserInterfaceProvider implements IUserInterface {
 		options: MessageOptions = {},
 		...actions: MessageAction[]
 	): Promise<string | undefined> {
-		console.log(chalk.blue("ℹ️  Info:"), message)
+		process.stdout.write(chalk.blue("ℹ️  Info: ") + message + "\n")
 		if (options.detail) {
-			console.log(chalk.gray(options.detail))
+			process.stdout.write(chalk.gray(options.detail) + "\n")
 		}
 
 		if (actions.length > 0 && this.isInteractiveMode) {
@@ -270,9 +270,9 @@ export class CLIUserInterfaceProvider implements IUserInterface {
 		options: MessageOptions = {},
 		...actions: MessageAction[]
 	): Promise<string | undefined> {
-		console.error(chalk.red("❌ Error:"), message)
+		process.stderr.write(chalk.red("❌ Error: ") + message + "\n")
 		if (options.detail) {
-			console.error(chalk.gray(options.detail))
+			process.stderr.write(chalk.gray(options.detail) + "\n")
 		}
 
 		if (actions.length > 0 && this.isInteractiveMode) {
@@ -301,9 +301,9 @@ export class CLIUserInterfaceProvider implements IUserInterface {
 		options: MessageOptions = {},
 		...actions: MessageAction[]
 	): Promise<string | undefined> {
-		console.warn(chalk.yellow("⚠️  Warning:"), message)
+		process.stdout.write(chalk.yellow("⚠️  Warning: ") + message + "\n")
 		if (options.detail) {
-			console.warn(chalk.gray(options.detail))
+			process.stdout.write(chalk.gray(options.detail) + "\n")
 		}
 
 		if (actions.length > 0 && this.isInteractiveMode) {
@@ -332,9 +332,9 @@ export class CLIUserInterfaceProvider implements IUserInterface {
 		options: MessageOptions = {},
 		...actions: MessageAction[]
 	): Promise<string | undefined> {
-		console.log(chalk.blue("ℹ️  Info:"), message)
+		process.stdout.write(chalk.blue("ℹ️  Info: ") + message + "\n")
 		if (options.detail) {
-			console.log(chalk.gray(options.detail))
+			process.stdout.write(chalk.gray(options.detail) + "\n")
 		}
 
 		if (actions.length > 0 && this.isInteractiveMode) {
@@ -410,7 +410,7 @@ export class CLIUserInterfaceProvider implements IUserInterface {
 	}
 
 	writeOutput(message: string, options: OutputOptions = {}): void {
-		console.log(message)
+		process.stdout.write(message)
 	}
 
 	setStatus(message: string, timeout?: number): void {
@@ -418,7 +418,7 @@ export class CLIUserInterfaceProvider implements IUserInterface {
 			clearTimeout(this.statusTimeout)
 		}
 
-		console.log(chalk.gray("Status:"), message)
+		process.stdout.write(chalk.gray("Status: ") + message + "\n")
 
 		if (timeout) {
 			this.statusTimeout = setTimeout(() => {
@@ -435,7 +435,7 @@ export class CLIUserInterfaceProvider implements IUserInterface {
 	}
 
 	supportsRichFormatting(): boolean {
-		return process.stdout.isTTY && chalk.level > 0
+		return Boolean(process.stdout.isTTY && chalk.level && chalk.level > 0)
 	}
 
 	// Additional methods expected by tests

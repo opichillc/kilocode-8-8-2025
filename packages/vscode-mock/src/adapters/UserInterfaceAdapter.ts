@@ -5,7 +5,7 @@ import ora, { Ora } from "ora"
 export interface IUserInterfaceAdapter {
 	initialize(): void
 	showProgress<T>(title: string, task: () => Promise<T>): Promise<T>
-	askQuestion(prompt: string, type?: "input" | "confirm" | "list"): Promise<string | boolean>
+	askQuestion(prompt: string, type?: "input" | "confirm" | "list", choices?: string[]): Promise<string | boolean>
 	showError(message: string): void
 	showWarning(message: string): void
 	showInfo(message: string): void
@@ -46,7 +46,10 @@ export class UserInterfaceAdapter implements IUserInterfaceAdapter {
 			message: prompt,
 		}
 
-		if (type === "list" && choices) {
+		if (type === "list") {
+			if (!choices || choices.length === 0) {
+				throw new Error("You must provide a `choices` parameter when using list type")
+			}
 			questionConfig.choices = choices
 		}
 
